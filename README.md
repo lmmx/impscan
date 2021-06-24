@@ -34,7 +34,8 @@ Two types of output are therefore required:
   - This kind of artifact is helpful at reducing iteration time when you can't recall
     quite how you achieved a particularly tricky environment setup.
 
-- `requirements.txt`, a machine-readable text list of
+- `requirements.txt`, a machine-readable text list of packages imported by the code in question
+  (note: out of simplicity, no distinction is made between dev and release requirements)
 
   - The purpose of this file is for each package to be verified as installed upon package setup.
     It is not necessary for this to be used for the installation of packages!
