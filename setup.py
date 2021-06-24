@@ -17,8 +17,8 @@ setup(
     author="Louis Maddox",
     author_email="louismmx@gmail.com",
     description=(
-        "Package providing command line tools to identify a minimal"
-        "requirements list and repository sources by parsing dependency trees"
+        "Command line tool to identify minimal imports list and"
+        "repository sources by parsing package dependency trees"
     ),
     license="MIT License",
     long_description=long_description,
