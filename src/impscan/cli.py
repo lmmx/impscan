@@ -4,10 +4,8 @@ from .scan import scan_imports
 
 __all__ = ["main"]
 
-def main(source_path, env_config):
-    #if report:
-    #    print("---------RUNNING impscan.cli⠶main()-------------", file=stderr)
-    scan_imports(source_path, env_config)
-    #if report:
-    #    print("------------------COMPLETE----------------------", file=stderr)
 
+def main(source_path, env_config):
+    reqs = scan_imports(source_path, env_config)
+    if env_config.report:
+        print(f"Registered imports: {reqs.registered_imports}")
