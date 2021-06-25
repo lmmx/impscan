@@ -14,8 +14,30 @@ need to operate on a package (e.g. it can just be scripts)
 ## Usage
 
 ```sh
+usage: impscan [-h] [-q] [-e EXCLUDE] [-b] source_path
 
+Scan imports and produce summary files for environment setup
+
+positional arguments:
+  source_path           Input path to scan Python files in
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -q, --quiet           Don't print to STDOUT
+  -e EXCLUDE, --exclude EXCLUDE
+                        Manually exclude a module name
+  -b, --build           Produce dev build requirements (do not drop requirements marked
+'build-system')
 ```
+
+e.g.
+
+```sh
+impscan ./my_package_dir/
+impscan ./one_module.py
+```
+
+and add `-e foo` to exclude the name "foo" from going into any requirements lists. 
 
 ## Output
 
