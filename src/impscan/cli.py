@@ -3,6 +3,7 @@ import argparse
 from argparse import ArgumentParser
 from .config import EnvConfig
 from .scanner.scan import scan_imports
+
 # import argcomplete
 
 __all__ = ["main"]
@@ -16,7 +17,11 @@ def main():
         "-q", "--quiet", action="store_true", help="Don't print to STDOUT"
     )
     parser.add_argument(
-        "-e", "--exclude", action="append", default=[], help="Manually exclude a module name"
+        "-e",
+        "--exclude",
+        action="append",
+        default=[],
+        help="Manually exclude a module name",
     )
     parser.add_argument(
         "-b",

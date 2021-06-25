@@ -22,7 +22,7 @@ def retrieve_imported_modules(py_file_path: Path) -> set:
             fc = fb.decode(encoding=fe)
         trunk = ast.parse(fc).body
     except Exception as e:
-        raise e # do not intercept for now
+        raise e  # do not intercept for now
     module_sibling_names = get_sibling_module_names(py_file_path)
     trunk_imports = get_imported_name_sources(trunk)
     imported_names = {
