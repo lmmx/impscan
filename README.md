@@ -78,3 +78,9 @@ Two types of output are therefore required:
 - Prune dependency tree
 - Identify sources (obeying source preferences if specified)
 - Save `CONDA_SETUP.md` and `requirements.txt`
+
+## Package layout
+
+- All source code is in `src/impscan/`, within which:
+  - `__main__.py⠶main()` is the target of the command-line tool, a thin interface to `cli.py`
+  - The `scanner/` subpackage handles import module name identification
