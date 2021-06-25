@@ -1,6 +1,6 @@
 import argparse
 from sys import stderr
-from .scan import scan_imports
+from .scanner.scan import scan_imports
 
 __all__ = ["main"]
 

@@ -1,6 +1,6 @@
 from pathlib import Path
 from .ast_utils import retrieve_imported_modules
-from .config import EnvConfig
+from ..config import EnvConfig
 
 __all__ = ["ParsedPy"]
 
