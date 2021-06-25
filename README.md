@@ -13,7 +13,7 @@ need to operate on a package (e.g. it can just be scripts)
 
 ## Usage
 
-```sh
+```
 usage: impscan [-h] [-q] [-e EXCLUDE] [-b] source_path
 
 Scan imports and produce summary files for environment setup
