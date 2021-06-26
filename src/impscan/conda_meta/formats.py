@@ -1,6 +1,7 @@
 import zipfile
 from .zip_utils import open_zipfile_from_url, read_zipped_zst
 import json
+from sys import stderr
 
 
 class CondaArchive:
@@ -80,25 +81,25 @@ class CondaArchive:
             self.info_is_read = True
 
     def determine_site_package_name(self) -> str:
-        site_packages_found = set()
-        path_generator = (p["_path"] for p in self.path_json["paths"])
-        for p in path_generator:
+        determined = False
+        pgen = (p["_path"] for p in self.path_json["paths"])
+        for p in pgen:
             site_pkg_substr = "/site-packages/"
             pre, hit, suff = p.partition(site_pkg_substr)
             if not (hit and pre.startswith("lib/python")):
+                if hit:
+                    print(f"? Hmm... Questionable: skipped {p=}", file=stderr)
                 continue
-            packagename = suff.partition("/")[0]
-            site_packages_found.add(packagename)
-            if len(site_packages_found) > 1:
+            package_name = suff.split("/")[0]
+            if "-" not in package_name:
+                determined = True
                 break
-        dist_info = [p for p in site_packages_found if p.endswith(".dist-info")]
-        determined_pkg = site_packages_found.difference(dist_info)
-        if len(determined_pkg) != 1:
+        if not determined:
             raise ValueError(
                 "Couldn't determine a single site_packages name"
-                f"\n{determined_pkg=} {dist_info=}"
+                f"\nThe last seen was: {packagename=}"
+                f"\nvia {self.url=}"
             )
-        package_name = next(p for p in determined_pkg)
         return package_name
 
     @property
