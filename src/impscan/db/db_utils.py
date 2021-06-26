@@ -27,8 +27,8 @@ class PackageDB:
     # This would also be useful for imported name when supplied
     def has_package(self, package_name):
         peek = self.retrieve_package(package_name, fetch_all=False)
-        has_station = peek is not None
-        return has_station
+        has_pkg = peek is not None
+        return has_pkg
 
     def __repr__(self):
         return f"{type(self)} '{self.filename}' at {self.directory}"
