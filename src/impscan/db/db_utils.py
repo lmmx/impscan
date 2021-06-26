@@ -44,6 +44,7 @@ class CondaPackageDB(PackageDB):
                 CREATE TABLE IF NOT EXISTS conda_packages
                 (channel tinytext, depends tinytext, filename tinytext, 
                 packagename varchar(100), url tinytext, version varchar(100),
+                rootpkgs text, importedname varchar(100),
                 Constraint pk_pid Primary key(channel, filename))
                 """
             )

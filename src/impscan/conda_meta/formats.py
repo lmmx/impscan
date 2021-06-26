@@ -4,15 +4,29 @@ import json
 
 
 class CondaArchive:
-    info_path = "info/paths.json"
+    info_is_read = False
+    path_info = "info/paths.json"
+    about_info = "info/about.json"
+    index_info = "info/index.json"
+    path_json = None
+    about_json = None 
+    index_json = None 
 
-    def __init__(self, zf: zipfile.ZipFile):
+    def __init__(self, zf: zipfile.ZipFile, source_url: str, channel: str):
         self.zip = zf
-        self.members = self.zip.namelist()
+        self.url = source_url
+        self.channel = channel
         self.meta_json, self.info_zst, self.pkg_zst = self.meta_and_tarballs()
 
+    @property
+    def members(self):
+        return self.zip.namelist()
+
     def meta_and_tarballs(self) -> tuple[str]:
-        "Validate the members for assignment to instance attributes"
+        """
+        Validate the members for assignment to instance attributes.
+        Note: 'members' means the filenames within the compressed archive.
+        """
         n = len(self.members)
         if n != 3:
             raise ValueError(f"Expected 3 items in .conda zipfile, got {n}")
@@ -37,10 +51,87 @@ class CondaArchive:
 
     @classmethod
     def from_url(cls, url: str):
+        """
+        Create a CondaArchive from a URL (either .conda, or .tar.bz2 [not implemented]
+        obtained from `conda search` or another source
+        """
+        if url.startswith("https://repo.anaconda.com/pkgs/"):
+            channel = "anaconda"
+        elif url.startswith("https://conda.anaconda.org/conda-forge/"):
+            channel = "conda-forge"
+        else:
+            raise ValueError("Cannot detect conda channel from this URL")
         zf = open_zipfile_from_url(url)
-        return cls(zf)
+        return cls(zf, source_url=url, channel=channel)
+
+    @property
+    def info_fields(self) -> list[str]:
+        return [self.path_info, self.about_info, self.index_info]
 
     def read_info(self):
-        [b] = read_zipped_zst(self.zip, self.info_zst, [self.info_path])
-        j = json.load(b)
-        return j
+        """
+        Load the JSON files from the info archive (otherwise all attempts to
+        access the JSON-parsed dict attributes' keys will fail) and set the
+        `info_is_read` flag to show this.
+        """
+        if not self.info_is_read:
+            info_b = read_zipped_zst(self.zip, self.info_zst, self.info_fields)
+            self.path_json, self.about_json, self.index_json = map(json.load, info_b)
+            self.info_is_read = True
+
+    def determine_site_package_name(self) -> str:
+        site_packages_found = set()
+        path_generator = (p["_path"] for p in self.path_json["paths"])
+        for p in path_generator:
+            site_pkg_substr = "/site-packages/"
+            pre, hit, suff = p.partition(site_pkg_substr)
+            if not (hit and pre.startswith("lib/python")):
+                continue
+            packagename = suff.partition("/")[0]
+            site_packages_found.add(packagename)
+            if len(site_packages_found) > 1:
+                break
+        dist_info = [p for p in site_packages_found if p.endswith(".dist-info")]
+        determined_pkg = site_packages_found.difference(dist_info)
+        if len(determined_pkg) != 1:
+            raise ValueError(
+                "Couldn't determine a single site_packages name"
+                f"\n{determined_pkg=} {dist_info=}"
+            )
+        package_name = next(p for p in determined_pkg)
+        return package_name
+
+    @property
+    def filename(self) -> str:
+        return self.url[self.url.rindex("/")+1:]
+
+    def summarise_root_pkgs(self) -> str:
+        """
+        Rather than store full spec for each root package,
+        just store the names (as a space-separated string).
+        Note: should not be used to 'follow' dependency chains
+        without checking versions.
+        """
+        root_pkgs = self.about_json["root_pkgs"]
+        root_pkg_names = [p.split(" ")[0] for p in root_pkgs]
+        return " ".join(root_pkg_names)
+
+    def parse_to_db_entry(self) -> tuple[str]:
+        if not self.info_is_read:
+            self.read_info()
+        depends = str(self.index_json["depends"])
+        package_name = self.index_json["name"]
+        version = self.index_json["version"]
+        root_pkgs = self.summarise_root_pkgs()
+        imported_name = self.determine_site_package_name()
+        db_entry = (
+            self.channel,
+            depends,
+            self.filename,
+            package_name,
+            self.url,
+            version,
+            root_pkgs,
+            imported_name
+        )
+        return db_entry
