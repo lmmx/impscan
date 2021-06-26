@@ -3,6 +3,7 @@ import argparse
 from argparse import ArgumentParser
 from .config import EnvConfig
 from .scanner.scan import scan_imports
+from .lookup import lookup_requirements
 
 # import argcomplete
 
@@ -29,6 +30,7 @@ def main():
         action="store_true",
         help="Produce dev build requirements (do not drop requirements marked 'build-system')",
     )
+    parser.add_argument("-v", "--version", action="store", help="Specify a Python version")
 
     # argcomplete.autocomplete(parser)
     arg_l = parser.parse_args()
@@ -41,3 +43,4 @@ def main():
     reqs = scan_imports(source_path=source_path, env_config=cfg)
     if reqs.env_config.report:
         print(f"Registered imports: {reqs.registered_imports}")
+    reqs_info = lookup_requirements(reqs)

@@ -6,10 +6,18 @@
 Scan imports in a directory, determine which are non-standard library,
 and then (tentatively) determine the package dependency tree and
 prune the requirements accordingly, as well as determining which
-can be obtained from Conda (and on which channels) and which from PyPi.
+can be obtained from Conda (and on which channels) and which from PyPI.
 
 Unlike some other refactoring tools, `impscan` does not
 need to operate on a package (e.g. it can just be scripts)
+
+## System requirements
+
+Installation requires Python <strike>3.7+ (for type annotations)</strike>
+3.8+ (for f-strings with `{=}`).
+
+- If you want to target an earlier version of Python for dependency checks,
+  specify it with the `-v`/`--version` flag.
 
 ## Usage
 
@@ -43,9 +51,9 @@ and add `-e foo` to exclude the name "foo" from going into any requirements list
 
 Since many packages (e.g. [numpy](https://docs.anaconda.com/mkl-optimizations/index.html))
 have optimised builds available via conda, it is desirable to
-mix conda and PyPi packages in an environment, for which
+mix conda and PyPI packages in an environment, for which
 [recommended best practice](https://www.anaconda.com/blog/using-pip-in-a-conda-environment)
-is to install PyPi packages afterwards.
+is to install PyPI packages afterwards.
 
 Identifying this accurately is important to save time for software developers:
 
