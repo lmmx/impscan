@@ -1,7 +1,7 @@
 import sqlite3
 from ..assets import _dir_path as store_path
 
-__all__ = ["PackageDB", "CondaPackageDB"] # TODO: "PyPIPackageDB"
+__all__ = ["PackageDB", "CondaPackageDB"]  # TODO: "PyPIPackageDB"
 
 
 class PackageDB:
@@ -33,6 +33,7 @@ class PackageDB:
     def __repr__(self):
         return f"{type(self)} '{self.filename}' at {self.directory}"
 
+
 class CondaPackageDB(PackageDB):
     def create(self, no_touch=False):
         if no_touch and not self.path.exists():
@@ -53,17 +54,19 @@ class CondaPackageDB(PackageDB):
         self,
         channel: str,
         depends: str,
-        filename: str, # "fn" key
-        packagename: str, # "name" key
+        fn: str,  # filename
+        pkgname: str,  # "name" key
         url: str,
         version: str,
+        rootpkgs: str,
+        impname: str,  # site-packages (imported) name
     ):
         try:
             with self.connect() as conn:
                 c = conn.cursor()
                 c.execute(
-                    "INSERT INTO conda_packages VALUES (?,?,?,?,?,?)",
-                    (channel, depends, filename, packagename, url, version),
+                    "INSERT INTO conda_packages VALUES (?,?,?,?,?,?,?,?)",
+                    (channel, depends, fn, pkgname, url, version, rootpkgs, impname),
                 )
                 conn.commit()
         except Exception as e:

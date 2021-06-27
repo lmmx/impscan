@@ -1,5 +1,6 @@
 __all__ = ["conda_search_reqs"]
 
+
 def conda_search_reqs(requirements) -> set:
     conda_reqs = set()
 

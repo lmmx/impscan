@@ -3,6 +3,8 @@ from .zip_utils import open_zipfile_from_url, read_zipped_zst
 import json
 from sys import stderr
 
+__all__ = ["CondaArchive"]
+
 
 class CondaArchive:
     info_is_read = False
@@ -10,8 +12,8 @@ class CondaArchive:
     about_info = "info/about.json"
     index_info = "info/index.json"
     path_json = None
-    about_json = None 
-    index_json = None 
+    about_json = None
+    index_json = None
 
     def __init__(self, zf: zipfile.ZipFile, source_url: str, channel: str):
         self.zip = zf
@@ -62,7 +64,11 @@ class CondaArchive:
             channel = "conda-forge"
         else:
             raise ValueError("Cannot detect conda channel from this URL")
-        zf = open_zipfile_from_url(url)
+        try:
+            zf = open_zipfile_from_url(url)
+        except zipfile.BadZipFile:
+            print(f"Bad zip file: {url=}", file=stderr)
+            raise
         return cls(zf, source_url=url, channel=channel)
 
     @property
@@ -82,29 +88,31 @@ class CondaArchive:
 
     def determine_site_package_name(self) -> str:
         determined = False
+        package_name = None
         pgen = (p["_path"] for p in self.path_json["paths"])
         for p in pgen:
-            site_pkg_substr = "/site-packages/"
+            site_pkg_substr = "site-packages/"
             pre, hit, suff = p.partition(site_pkg_substr)
-            if not (hit and pre.startswith("lib/python")):
-                if hit:
-                    print(f"? Hmm... Questionable: skipped {p=}", file=stderr)
+            if not hit:
                 continue
             package_name = suff.split("/")[0]
             if "-" not in package_name:
                 determined = True
                 break
         if not determined:
-            raise ValueError(
-                "Couldn't determine a single site_packages name"
-                f"\nThe last seen was: {packagename=}"
-                f"\nvia {self.url=}"
+            print(
+                ValueError(
+                    "Couldn't determine a single site_packages name"
+                    f"\nThe last seen was: {package_name=}"
+                    f"\nvia {self.url=}"
+                ),
+                file=stderr,
             )
         return package_name
 
     @property
     def filename(self) -> str:
-        return self.url[self.url.rindex("/")+1:]
+        return self.url[self.url.rindex("/") + 1 :]
 
     def summarise_root_pkgs(self) -> str:
         """
@@ -114,6 +122,8 @@ class CondaArchive:
         without checking versions.
         """
         root_pkgs = self.about_json["root_pkgs"]
+        if root_pkgs and isinstance(root_pkgs[0], dict):
+            root_pkgs = [e["name"] for e in root_pkgs]
         root_pkg_names = [p.split(" ")[0] for p in root_pkgs]
         return " ".join(root_pkg_names)
 
@@ -133,6 +143,6 @@ class CondaArchive:
             self.url,
             version,
             root_pkgs,
-            imported_name
+            imported_name,
         )
         return db_entry

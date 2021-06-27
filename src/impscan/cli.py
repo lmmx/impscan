@@ -30,7 +30,9 @@ def main():
         action="store_true",
         help="Produce dev build requirements (do not drop requirements marked 'build-system')",
     )
-    parser.add_argument("-v", "--version", action="store", help="Specify a Python version")
+    parser.add_argument(
+        "-v", "--version", action="store", help="Specify a Python version"
+    )
 
     # argcomplete.autocomplete(parser)
     arg_l = parser.parse_args()

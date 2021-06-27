@@ -6,3 +6,4 @@ dist
 version.py
 .eggs
 **/assets/*.json
+**/assets/package_catalogue.db
