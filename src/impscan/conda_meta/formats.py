@@ -2,17 +2,13 @@ import zipfile
 import tarfile
 from .zip_utils import open_zipfile_from_url, read_zipped_zst
 from .tar_utils import open_tarfile_from_url, read_bz2_paths
+from .url_utils import detect_archive_type_from_url, detect_channel_from_url
+from .archive_types import ArchiveType
 import json
 from sys import stderr
-from enum import Enum
 from typing import Union
 
 __all__ = ["CondaArchive"]
-
-
-class ArchiveType(Enum):
-    Zstd = ".conda"
-    Bz2 = ".tar.bz2"
 
 
 class CondaArchive:
@@ -24,18 +20,38 @@ class CondaArchive:
     about_json = None
     index_json = None
 
-    def __init__(self, archive: Union[zipfile.ZipFile, tarfile.TarFile], source_url: str, channel: str, archive_type: ArchiveType):
-        self.archive_type = archive_type
-        if self.archive_type is ArchiveType.Zstd:
-            assert isinstance(archive, zipfile.ZipFile), f"Unexpected {type(archive)=}"
-            self.zip = archive
-        elif self.archive_type is ArchiveType.Bz2:
-            assert isinstance(archive, tarfile.TarFile), f"Unexpected {type(archive)=}"
-            self.bz2 = archive
+    def __init__(self, source_url: str, defer_pull: bool = False):
+        self.url = source_url
+        self.channel = detect_channel_from_url(self.url)
+        self.archive_type = detect_archive_type_from_url(self.url)
+        if not defer_pull:  # deferred for async procedure
+            self.pull()
+
+    def pull(self) -> None:
+        if self.is_zstd:
+            try:
+                archive = open_zipfile_from_url(self.url)
+            except zipfile.BadZipFile:
+                print(f"Bad zip file: {url=}", file=stderr)
+                raise
+            else:
+                assert isinstance(
+                    archive, zipfile.ZipFile
+                ), f"Unexpected {type(archive)=}"
+                self.zip = archive
+        elif self.is_bz2:
+            try:
+                archive = open_tarfile_from_url(self.url)
+            except tarfile.TarError:
+                print(f"Bad tarball: {url=}", file=stderr)
+                raise
+            else:
+                assert isinstance(
+                    archive, tarfile.TarFile
+                ), f"Unexpected {type(archive)=}"
+                self.bz2 = archive
         else:
             raise ValueError(f"{archive_type=} is not a valid ArchiveType")
-        self.url = source_url
-        self.channel = channel
         if self.archive_type is ArchiveType.Zstd:
             # info_zst is used for info_bytes by read_zipped_zst
             try:
@@ -48,6 +64,10 @@ class CondaArchive:
     @property
     def is_zstd(self):
         return self.archive_type is ArchiveType.Zstd
+
+    @property
+    def is_bz2(self):
+        return self.archive_type is ArchiveType.Bz2
 
     @property
     def archive(self):
@@ -93,45 +113,7 @@ class CondaArchive:
             [pkg_tar] = member_list
         except ValueError as e:
             raise ValueError(f"{e} --- No package tarball in {self.members=}")
-        return meta_fn, info_tar#, pkg_tar
-
-    @classmethod
-    def from_url(cls, url: str):
-        """
-        Create a CondaArchive from a URL (either .conda, or .tar.bz2 [not implemented]
-        obtained from `conda search` or another source
-        """
-        anaconda_prefixes = [
-            "https://repo.anaconda.com/pkgs/",
-            "https://conda.anaconda.org/anaconda/",
-        ]
-        if any(url.startswith(pfx) for pfx in anaconda_prefixes):
-            channel = "anaconda"
-        elif url.startswith("https://conda.anaconda.org/conda-forge/"):
-            channel = "conda-forge"
-        else:
-            raise ValueError("Cannot detect conda channel from this URL")
-        if url.endswith(ArchiveType.Zstd.value):
-            archive_type = ArchiveType.Zstd
-        elif url.endswith(ArchiveType.Bz2.value):
-            archive_type = ArchiveType.Bz2
-        else:
-            raise ValueError("Cannot detect .conda or .tar.bz2 archive from this URL")
-        if archive_type is ArchiveType.Zstd:
-            try:
-                zf = open_zipfile_from_url(url)
-                archive = cls(zf, source_url=url, channel=channel, archive_type=archive_type)
-            except zipfile.BadZipFile:
-                print(f"Bad zip file: {url=}", file=stderr)
-                raise
-        else:
-            try:
-                tf = open_tarfile_from_url(url)
-                archive = cls(tf, source_url=url, channel=channel, archive_type=archive_type)
-            except tarfile.TarError:
-                print(f"Bad tarball: {url=}", file=stderr)
-                raise
-        return archive
+        return meta_fn, info_tar  # , pkg_tar
 
     @property
     def info_fields(self) -> list[str]:
@@ -151,29 +133,42 @@ class CondaArchive:
             self.path_json, self.about_json, self.index_json = map(json.load, info_b)
             self.info_is_read = True
 
-    def determine_site_package_name(self) -> str:
-        determined = False
-        package_name = None
+    def determine_site_package_name(self) -> Union[str, None]:
+        """
+        Identify the package(s) which can be imported after the
+        conda package is installed, by inspecting the `/site-packages/`
+        paths it creates. Multiple names are comma-separated in alphabetical
+        order. Returns `None` if no such names are found.
+        """
+        comma_sep_pkgs = None
         pgen = (p["_path"] for p in self.path_json["paths"])
+        libs = set()
+        lib_name = None
         for p in pgen:
             site_pkg_substr = "site-packages/"
-            pre, hit, suff = p.partition(site_pkg_substr)
+            _, hit, suff = p.partition(site_pkg_substr)
             if not hit:
                 continue
-            package_name = suff.split("/")[0]
-            if "-" not in package_name:
-                determined = True
-                break
-        if not determined:
+            lib_name = suff.split("/")[0]
+            if "-" not in lib_name:
+                libs.add(lib_name)  # non-`lib-dynload`, 'regular' package
+            elif lib_name.endswith(".so"):  # macOS and Linux only
+                libs.add(lib_name.split(".")[0])  # destined for `lib-dynload`
+        if libs:
+            comma_sep_pkgs = ",".join(sorted(libs))
+        else:
+            if lib_name is not None:
+                extra_info = f" (last seen: {lib_name=})"
+            else:
+                extra_info = ""
             print(
                 ValueError(
-                    "Couldn't determine a site_packages name"
-                    f" (last seen: {package_name=})"
-                    f"\n--> via {self.url=}"
+                    f"Couldn't determine a site-packages name{extra_info}"
+                    f" --> via {self.url=}"
                 ),
                 file=stderr,
             )
-        return package_name
+        return comma_sep_pkgs
 
     @property
     def filename(self) -> str:

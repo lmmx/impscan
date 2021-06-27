@@ -21,7 +21,7 @@ def populate_conda_package_db():
                 most_recent_archive = next(
                     a for a in archive_listings if a["fn"].endswith(".conda")
                 )
-                c = CondaArchive.from_url(most_recent_archive["url"])
+                c = CondaArchive(most_recent_archive["url"])
                 try:
                     e = c.parse_to_db_entry()
                     db.insert_entry(*e)
@@ -31,16 +31,11 @@ def populate_conda_package_db():
                 most_recent_archive = next(
                     a for a in archive_listings if a["fn"].endswith(".tar.bz2")
                 )
-                c = CondaArchive.from_url(most_recent_archive["url"])
+                c = CondaArchive(most_recent_archive["url"])
                 try:
                     e = c.parse_to_db_entry()
                     db.insert_entry(*e)
                 except (FileNotFoundError, zipfile.BadZipFile) as e:
                     print(e, file=stderr)
-                # raise NotImplementedError(f"No .conda archive for {package=}")
-                #print(
-                #    NotImplementedError(f"No .conda archive for {package=}"),
-                #    file=stderr,
-                #)
             else:
                 print(ValueError(f"No .conda or .tar.bz2 archives for {package=}"))

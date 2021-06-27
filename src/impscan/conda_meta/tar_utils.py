@@ -4,6 +4,7 @@ import io
 
 __all__ = ["open_zipfile_from_url"]
 
+
 def open_tarfile_from_url(url: str) -> tarfile.TarFile:
     b = read_raw_stream(url)
     z = tarfile.open(fileobj=io.BytesIO(b), mode="r:bz2")

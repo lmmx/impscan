@@ -24,6 +24,11 @@ Installation requires Python <strike>3.7+ (for type annotations)</strike>
 - If you want to target an earlier version of Python for dependency checks,
   specify it with the `-v`/`--version` flag.
 
+The detection of imported names relies on `site-packages` paths which
+Linux and macOS both have but Windows does not, so that functionality
+won't work on Windows. Feel free to open an issue to discuss developing this
+if interested.
+
 ## Usage
 
 ```

@@ -1,5 +1,6 @@
 __all__ = ["sort_package_json_by_version"]
 
+
 def strip_ver_alpha_chars(version_str: str) -> str:
     REPLACING = False
     new_str = ""
@@ -29,7 +30,7 @@ def version_as_tuple(version_str: str, imply_epoch=False) -> tuple:
     them back before the entire series they are within (as the use case involves
     looking at most recent first, so deprioritise these builds if possible).
     """
-    #print(f"{version_str=}") # uncomment to print out all versions to debug faster
+    # print(f"{version_str=}") # uncomment to print out all versions to debug faster
     try:
         if imply_epoch and "!" in version_str:
             version_str = version_str.replace("!", ".")
