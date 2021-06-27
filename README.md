@@ -11,6 +11,11 @@ can be obtained from Conda (and on which channels) and which from PyPI.
 Unlike some other refactoring tools, `impscan` does not
 need to operate on a package (e.g. it can just be scripts)
 
+Currently, requirements (AKA "root packages"), imported module name
+("site packages" name) and other features are computed for one build
+for every package on conda's `anaconda` and `conda-forge` channels
+(over 20,000 packages).
+
 ## System requirements
 
 Installation requires Python <strike>3.7+ (for type annotations)</strike>

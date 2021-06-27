@@ -1,9 +1,18 @@
 import zipfile
+import tarfile
 from .zip_utils import open_zipfile_from_url, read_zipped_zst
+from .tar_utils import open_tarfile_from_url, read_bz2_paths
 import json
 from sys import stderr
+from enum import Enum
+from typing import Union
 
 __all__ = ["CondaArchive"]
+
+
+class ArchiveType(Enum):
+    Zstd = ".conda"
+    Bz2 = ".tar.bz2"
 
 
 class CondaArchive:
@@ -15,20 +24,54 @@ class CondaArchive:
     about_json = None
     index_json = None
 
-    def __init__(self, zf: zipfile.ZipFile, source_url: str, channel: str):
-        self.zip = zf
+    def __init__(self, archive: Union[zipfile.ZipFile, tarfile.TarFile], source_url: str, channel: str, archive_type: ArchiveType):
+        self.archive_type = archive_type
+        if self.archive_type is ArchiveType.Zstd:
+            assert isinstance(archive, zipfile.ZipFile), f"Unexpected {type(archive)=}"
+            self.zip = archive
+        elif self.archive_type is ArchiveType.Bz2:
+            assert isinstance(archive, tarfile.TarFile), f"Unexpected {type(archive)=}"
+            self.bz2 = archive
+        else:
+            raise ValueError(f"{archive_type=} is not a valid ArchiveType")
         self.url = source_url
         self.channel = channel
-        self.meta_json, self.info_zst, self.pkg_zst = self.meta_and_tarballs()
+        if self.archive_type is ArchiveType.Zstd:
+            # info_zst is used for info_bytes by read_zipped_zst
+            try:
+                self.meta_json, self.info_zst = self.zst_meta_and_tarballs()
+            except:
+                breakpoint()
+        else:
+            self.check_bz2_info_dir()
+
+    @property
+    def is_zstd(self):
+        return self.archive_type is ArchiveType.Zstd
+
+    @property
+    def archive(self):
+        return self.zip if self.is_zstd else self.bz2
 
     @property
     def members(self):
-        return self.zip.namelist()
+        return self.archive.namelist() if self.is_zstd else self.archive.getnames()
 
-    def meta_and_tarballs(self) -> tuple[str]:
+    def check_bz2_info_dir(self) -> None:
         """
         Validate the members for assignment to instance attributes.
-        Note: 'members' means the filenames within the compressed archive.
+        Note: 'members' means the filenames within the compressed .tar.bz2 archive.
+        """
+        bz2_info_dirname = "info/"
+        if not any(f for f in self.members if f.startswith(bz2_info_dirname)):
+            raise ValueError(f"No info directory in {self.members=}")
+        return
+
+    def zst_meta_and_tarballs(self) -> tuple[str]:
+        """
+        Validate the members for assignment to instance attributes.
+        Note: 'members' means the filenames within the compressed .conda archive.
+        (Validate package tarball but don't return as not used.)
         """
         n = len(self.members)
         if n != 3:
@@ -38,19 +81,19 @@ class CondaArchive:
         try:
             member_list.remove(meta_fn)
         except ValueError as e:
-            raise ValueError(f"{e} --- No metadata JSON in {self.members}")
+            raise ValueError(f"{e} --- No metadata JSON in {self.members=}")
         if not all(t.endswith(".tar.zst") for t in member_list):
             raise ValueError(f"Expected zstd tarballs in {self.member_list=}")
         try:
             [info_tar] = [z for z in member_list if z.startswith("info-")]
         except ValueError as e:
-            raise ValueError(f"{e} --- No info tarball in {self.members}")
+            raise ValueError(f"{e} --- No info tarball in {self.members=}")
         try:
             member_list.remove(info_tar)
             [pkg_tar] = member_list
         except ValueError as e:
-            raise ValueError(f"{e} --- No package tarball in {self.members}")
-        return meta_fn, info_tar, pkg_tar
+            raise ValueError(f"{e} --- No package tarball in {self.members=}")
+        return meta_fn, info_tar#, pkg_tar
 
     @classmethod
     def from_url(cls, url: str):
@@ -58,18 +101,37 @@ class CondaArchive:
         Create a CondaArchive from a URL (either .conda, or .tar.bz2 [not implemented]
         obtained from `conda search` or another source
         """
-        if url.startswith("https://repo.anaconda.com/pkgs/"):
+        anaconda_prefixes = [
+            "https://repo.anaconda.com/pkgs/",
+            "https://conda.anaconda.org/anaconda/",
+        ]
+        if any(url.startswith(pfx) for pfx in anaconda_prefixes):
             channel = "anaconda"
         elif url.startswith("https://conda.anaconda.org/conda-forge/"):
             channel = "conda-forge"
         else:
             raise ValueError("Cannot detect conda channel from this URL")
-        try:
-            zf = open_zipfile_from_url(url)
-        except zipfile.BadZipFile:
-            print(f"Bad zip file: {url=}", file=stderr)
-            raise
-        return cls(zf, source_url=url, channel=channel)
+        if url.endswith(ArchiveType.Zstd.value):
+            archive_type = ArchiveType.Zstd
+        elif url.endswith(ArchiveType.Bz2.value):
+            archive_type = ArchiveType.Bz2
+        else:
+            raise ValueError("Cannot detect .conda or .tar.bz2 archive from this URL")
+        if archive_type is ArchiveType.Zstd:
+            try:
+                zf = open_zipfile_from_url(url)
+                archive = cls(zf, source_url=url, channel=channel, archive_type=archive_type)
+            except zipfile.BadZipFile:
+                print(f"Bad zip file: {url=}", file=stderr)
+                raise
+        else:
+            try:
+                tf = open_tarfile_from_url(url)
+                archive = cls(tf, source_url=url, channel=channel, archive_type=archive_type)
+            except tarfile.TarError:
+                print(f"Bad tarball: {url=}", file=stderr)
+                raise
+        return archive
 
     @property
     def info_fields(self) -> list[str]:
@@ -82,7 +144,10 @@ class CondaArchive:
         `info_is_read` flag to show this.
         """
         if not self.info_is_read:
-            info_b = read_zipped_zst(self.zip, self.info_zst, self.info_fields)
+            if self.is_zstd:
+                info_b = read_zipped_zst(self.archive, self.info_zst, self.info_fields)
+            else:
+                info_b = read_bz2_paths(self.archive, self.info_fields)
             self.path_json, self.about_json, self.index_json = map(json.load, info_b)
             self.info_is_read = True
 
@@ -102,9 +167,9 @@ class CondaArchive:
         if not determined:
             print(
                 ValueError(
-                    "Couldn't determine a single site_packages name"
-                    f"\nThe last seen was: {package_name=}"
-                    f"\nvia {self.url=}"
+                    "Couldn't determine a site_packages name"
+                    f" (last seen: {package_name=})"
+                    f"\n--> via {self.url=}"
                 ),
                 file=stderr,
             )
