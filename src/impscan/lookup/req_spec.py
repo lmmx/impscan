@@ -1,4 +1,3 @@
-# Python 3.7+ enable list[str] see https://stackoverflow.com/a/65777001/
 from __future__ import annotations
 
 __all__ = ["ReqSpec", "CondaReqSpec", "PyPIReqSpec"]
@@ -11,7 +10,7 @@ class Repository(Enum):
 
 class ReqSpec:
     def __init__(
-        self, package: str, repository: Repository, channel: list, constraints: list
+        self, package: str, repository: Repository, channel: list[str], constraints: list[str]
     ):
         self.package = package
         self.repository = repository
@@ -20,7 +19,7 @@ class ReqSpec:
 
 
 class CondaReqSpec(ReqSpec):
-    def __init__(self, package: str, channel: list[str], constraints: list):
+    def __init__(self, package: str, channel: list[str], constraints: list[str]):
         super().__init__(
             package=package,
             repository=Repository.Conda,
@@ -30,7 +29,7 @@ class CondaReqSpec(ReqSpec):
 
 
 class PyPIReqSpec(ReqSpec):
-    def __init__(self, package: str, channel: list[str], constraints: list):
+    def __init__(self, package: str, channel: list[str], constraints: list[str]):
         super().__init__(
             package=package,
             repository=Repository.PyPI,

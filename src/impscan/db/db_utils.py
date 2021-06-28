@@ -1,5 +1,6 @@
 import sqlite3
 from ..assets import _dir_path as store_path
+from sys import stderr
 
 __all__ = ["PackageDB", "CondaPackageDB"]  # TODO: "PyPIPackageDB"
 
@@ -43,35 +44,39 @@ class CondaPackageDB(PackageDB):
             c.execute(
                 """
                 CREATE TABLE IF NOT EXISTS conda_packages
-                (channel tinytext, depends tinytext, filename tinytext, 
-                packagename varchar(100), url tinytext, version varchar(100),
-                rootpkgs text, importedname varchar(100),
+                (packagename varchar(100), importedname varchar(100),
+                channel tinytext, depends tinytext, filename tinytext, 
+                url tinytext, version varchar(100), rootpkgs text,
                 Constraint pk_pid Primary key(channel, filename))
                 """
             )
 
     def insert_entry(
         self,
+        pkgname: str,  # "name" key
+        impname: str,  # site-packages (imported) name
         channel: str,
         depends: str,
         fn: str,  # filename
-        pkgname: str,  # "name" key
         url: str,
         version: str,
         rootpkgs: str,
-        impname: str,  # site-packages (imported) name
     ):
         try:
             with self.connect() as conn:
                 c = conn.cursor()
                 c.execute(
                     "INSERT INTO conda_packages VALUES (?,?,?,?,?,?,?,?)",
-                    (channel, depends, fn, pkgname, url, version, rootpkgs, impname),
+                    (pkgname, impname, channel, depends, fn, url, version, rootpkgs),
                 )
                 conn.commit()
-        except Exception as e:
-            print(f"{channel=} {depends=} {filename=} {packagename=} {url=} {version=}")
-            raise e
+        except:
+            print(
+                f"{pkgname=} {impname=} {channel=} {depends=}",
+                f"{fn=} {url=} {version=} {rootpkgs=}",
+                file=stderr
+            )
+            raise
 
     def retrieve_filename(self, fn, fetch_all=False):
         with self.connect() as conn:

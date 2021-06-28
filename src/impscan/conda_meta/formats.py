@@ -1,12 +1,14 @@
+from __future__ import annotations
 import zipfile
 import tarfile
 from .zip_utils import open_zipfile_from_url, read_zipped_zst
 from .tar_utils import open_tarfile_from_url, read_bz2_paths
 from .url_utils import detect_archive_type_from_url, detect_channel_from_url
 from .archive_types import ArchiveType
+from .so_utils import verify_exported_module_name
 import json
 from sys import stderr
-from typing import Union
+from pathlib import Path
 
 __all__ = ["CondaArchive"]
 
@@ -22,6 +24,7 @@ class CondaArchive:
 
     def __init__(self, source_url: str, defer_pull: bool = False):
         self.url = source_url
+        print(source_url)
         self.channel = detect_channel_from_url(self.url)
         self.archive_type = detect_archive_type_from_url(self.url)
         if not defer_pull:  # deferred for async procedure
@@ -55,7 +58,8 @@ class CondaArchive:
         if self.archive_type is ArchiveType.Zstd:
             # info_zst is used for info_bytes by read_zipped_zst
             try:
-                self.meta_json, self.info_zst = self.zst_meta_and_tarballs()
+                self.meta_json, info_z, pkg_z = self.zst_meta_and_tarballs()
+                self.info_zst, self.pkg_zst = info_z, pkg_z
             except:
                 breakpoint()
         else:
@@ -113,7 +117,7 @@ class CondaArchive:
             [pkg_tar] = member_list
         except ValueError as e:
             raise ValueError(f"{e} --- No package tarball in {self.members=}")
-        return meta_fn, info_tar  # , pkg_tar
+        return meta_fn, info_tar, pkg_tar
 
     @property
     def info_fields(self) -> list[str]:
@@ -133,29 +137,59 @@ class CondaArchive:
             self.path_json, self.about_json, self.index_json = map(json.load, info_b)
             self.info_is_read = True
 
-    def determine_site_package_name(self) -> Union[str, None]:
+    def determine_site_package_name(self) -> str | None:
         """
         Identify the package(s) which can be imported after the
         conda package is installed, by inspecting the `/site-packages/`
         paths it creates. Multiple names are comma-separated in alphabetical
         order. Returns `None` if no such names are found.
         """
+        pkg_suffixes = [".py", ".so"]
+        not_site_pkgs = "LICENSE __pycache__ bin share tests __init__.py AUTHORS docs"
+        # also if packagename is not "ez_setup" then "ez_setup.py" shouldn't be there
         comma_sep_pkgs = None
         pgen = (p["_path"] for p in self.path_json["paths"])
         libs = set()
         lib_name = None
+        ADD_LIB = False # flag to direct control flow
+        seen = set()
         for p in pgen:
-            site_pkg_substr = "site-packages/"
-            _, hit, suff = p.partition(site_pkg_substr)
-            if not hit:
+            pth = Path(p)
+            site_pkg_substr = "site-packages"
+            if not site_pkg_substr in pth.parts:
                 continue
-            lib_name = suff.split("/")[0]
+            site_pkg_i = pth.parts.index(site_pkg_substr)
+            # Take the subpath below `site-packages/`
+            sp_subpath = pth.relative_to(Path(*pth.parts[:site_pkg_i+1]))
+            print(sp_subpath)
+            # anything directly under site-packages is in an importable namespace
+            lib_name = sp_subpath.parts[0]
+            if lib_name in seen:
+                continue
+            seen.add(lib_name)
+            lib_name_path = Path(lib_name)
+            print(f"Identified {lib_name=}")
+            if "." in lib_name and lib_name_path.suffix not in pkg_suffixes:
+                continue # skip non-package suffixes
+            elif lib_name in not_site_pkgs.split():
+                continue # crud that ends up in site-packages
+            elif lib_name == "ez_setup.py" and self.package_name != "ez_setup":
+                continue # installer shipped with some packages
             if "-" not in lib_name:
-                libs.add(lib_name)  # non-`lib-dynload`, 'regular' package
-            elif lib_name.endswith(".so"):  # macOS and Linux only
-                libs.add(lib_name.split(".")[0])  # destined for `lib-dynload`
+                ADD_LIB = True  # non-`lib-dynload`, 'regular' package
+            if lib_name_path.suffix == ".so":  # macOS and Linux only
+                lib_name = verify_exported_module_name(conda_archive=self, so_path=p)
+                ADD_LIB = lib_name is not None
+            if ADD_LIB:
+                if any(lib_name.endswith(s) for s in pkg_suffixes):
+                    lib_name = lib_name[:lib_name.rfind(".")]
+                libs.add(lib_name) 
         if libs:
-            comma_sep_pkgs = ",".join(sorted(libs))
+            # Alphabetise the imported module names, underscore-prefixed later
+            comma_sep_pkgs = ",".join(
+                # `p.index(p.lstrip("_"))` counts the leading underscores in p
+                sorted(libs, key=lambda p: (p.index(p.lstrip("_")), p))
+            )
         else:
             if lib_name is not None:
                 extra_info = f" (last seen: {lib_name=})"
@@ -191,18 +225,19 @@ class CondaArchive:
         if not self.info_is_read:
             self.read_info()
         depends = str(self.index_json["depends"])
-        package_name = self.index_json["name"]
+        # assign attribute so determine_site_package_name can access
+        self.package_name = self.index_json["name"]
         version = self.index_json["version"]
         root_pkgs = self.summarise_root_pkgs()
         imported_name = self.determine_site_package_name()
         db_entry = (
+            self.package_name,
+            imported_name,
             self.channel,
             depends,
             self.filename,
-            package_name,
             self.url,
             version,
             root_pkgs,
-            imported_name,
         )
         return db_entry

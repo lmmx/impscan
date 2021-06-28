@@ -6,4 +6,5 @@ dist
 version.py
 .eggs
 **/assets/*.json
+*.db-journal
 **/assets/package_catalogue.db
