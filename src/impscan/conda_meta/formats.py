@@ -145,7 +145,7 @@ class CondaArchive:
         order. Returns `None` if no such names are found.
         """
         pkg_suffixes = [".py", ".so"]
-        not_site_pkgs = "LICENSE __pycache__ bin share tests __init__.py AUTHORS docs"
+        not_site_pkgs = "LICENSE README __pycache__ bin share tests __init__.py AUTHORS docs"
         # also if packagename is not "ez_setup" then "ez_setup.py" shouldn't be there
         comma_sep_pkgs = None
         pgen = (p["_path"] for p in self.path_json["paths"])
@@ -158,6 +158,8 @@ class CondaArchive:
             site_pkg_substr = "site-packages"
             if not site_pkg_substr in pth.parts:
                 continue
+            elif p == site_pkg_substr:
+                continue # pypy ships a `site-packages` symlink in top level dir
             site_pkg_i = pth.parts.index(site_pkg_substr)
             # Take the subpath below `site-packages/`
             sp_subpath = pth.relative_to(Path(*pth.parts[:site_pkg_i+1]))
