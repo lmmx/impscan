@@ -74,7 +74,7 @@ class CondaPackageDB(PackageDB):
             print(
                 f"{pkgname=} {impname=} {channel=} {depends=}",
                 f"{fn=} {url=} {version=} {rootpkgs=}",
-                file=stderr
+                file=stderr,
             )
             raise
 

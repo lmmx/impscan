@@ -145,13 +145,15 @@ class CondaArchive:
         order. Returns `None` if no such names are found.
         """
         pkg_suffixes = [".py", ".so"]
-        not_site_pkgs = "LICENSE README __pycache__ bin share tests __init__.py AUTHORS docs"
+        not_site_pkgs = (
+            "LICENSE README __pycache__ bin share tests __init__.py AUTHORS docs"
+        )
         # also if packagename is not "ez_setup" then "ez_setup.py" shouldn't be there
         comma_sep_pkgs = None
         pgen = (p["_path"] for p in self.path_json["paths"])
         libs = set()
         lib_name = None
-        ADD_LIB = False # flag to direct control flow
+        ADD_LIB = False  # flag to direct control flow
         seen = set()
         for p in pgen:
             pth = Path(p)
@@ -159,24 +161,23 @@ class CondaArchive:
             if not site_pkg_substr in pth.parts:
                 continue
             elif p == site_pkg_substr:
-                continue # pypy ships a `site-packages` symlink in top level dir
+                continue  # pypy ships a `site-packages` symlink in top level dir
             site_pkg_i = pth.parts.index(site_pkg_substr)
             # Take the subpath below `site-packages/`
-            sp_subpath = pth.relative_to(Path(*pth.parts[:site_pkg_i+1]))
-            print(sp_subpath)
+            sp_subpath = pth.relative_to(Path(*pth.parts[: site_pkg_i + 1]))
+            #print(sp_subpath)
             # anything directly under site-packages is in an importable namespace
             lib_name = sp_subpath.parts[0]
             if lib_name in seen:
                 continue
             seen.add(lib_name)
             lib_name_path = Path(lib_name)
-            print(f"Identified {lib_name=}")
             if "." in lib_name and lib_name_path.suffix not in pkg_suffixes:
-                continue # skip non-package suffixes
+                continue  # skip non-package suffixes
             elif lib_name in not_site_pkgs.split():
-                continue # crud that ends up in site-packages
+                continue  # crud that ends up in site-packages
             elif lib_name == "ez_setup.py" and self.package_name != "ez_setup":
-                continue # installer shipped with some packages
+                continue  # installer shipped with some packages
             if "-" not in lib_name:
                 ADD_LIB = True  # non-`lib-dynload`, 'regular' package
             if lib_name_path.suffix == ".so":  # macOS and Linux only
@@ -184,8 +185,9 @@ class CondaArchive:
                 ADD_LIB = lib_name is not None
             if ADD_LIB:
                 if any(lib_name.endswith(s) for s in pkg_suffixes):
-                    lib_name = lib_name[:lib_name.rfind(".")]
-                libs.add(lib_name) 
+                    lib_name = lib_name[: lib_name.rfind(".")]
+                libs.add(lib_name)
+                print(f"Identified {lib_name=}")
         if libs:
             # Alphabetise the imported module names, underscore-prefixed later
             comma_sep_pkgs = ",".join(
@@ -223,7 +225,7 @@ class CondaArchive:
         root_pkg_names = [p.split(" ")[0] for p in root_pkgs]
         return " ".join(root_pkg_names)
 
-    def parse_to_db_entry(self) -> tuple[str]:
+    def parse_to_db_entry(self) -> dict[str, str]:
         if not self.info_is_read:
             self.read_info()
         depends = str(self.index_json["depends"])
@@ -232,14 +234,14 @@ class CondaArchive:
         version = self.index_json["version"]
         root_pkgs = self.summarise_root_pkgs()
         imported_name = self.determine_site_package_name()
-        db_entry = (
-            self.package_name,
-            imported_name,
-            self.channel,
-            depends,
-            self.filename,
-            self.url,
-            version,
-            root_pkgs,
-        )
+        db_entry = {
+            "pkgname": self.package_name,
+            "impname": imported_name,
+            "channel": self.channel,
+            "depends": depends,
+            "fn": self.filename,
+            "url": self.url,
+            "version": version,
+            "rootpkgs": root_pkgs,
+        }
         return db_entry

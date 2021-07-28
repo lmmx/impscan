@@ -18,11 +18,9 @@ for every package on conda's `anaconda` and `conda-forge` channels
 
 ## System requirements
 
-Installation requires Python <strike>3.7+ (for type annotations)</strike>
-3.8+ (for f-strings with `{=}`).
-
-- If you want to target an earlier version of Python for dependency checks,
-  specify it with the `-v`/`--version` flag.
+- Python 3.8+
+  - If you want to target an earlier version of Python for dependency checks,
+    specify it with the `-v`/`--version` flag.
 
 The detection of imported names relies on `site-packages` paths which
 Linux and macOS both have but Windows does not, so that functionality
@@ -45,7 +43,7 @@ optional arguments:
   -e EXCLUDE, --exclude EXCLUDE
                         Manually exclude a module name
   -b, --build           Produce dev build requirements (do not drop requirements marked
-'build-system')
+                        'build-system')
 ```
 
 e.g.

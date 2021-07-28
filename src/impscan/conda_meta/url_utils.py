@@ -1,5 +1,5 @@
 from .archive_types import ArchiveType
-import requests
+import httpx
 
 __all__ = ["detect_archive_type_from_url", "detect_channel_from_url", "read_raw_stream"]
 
@@ -29,4 +29,7 @@ def detect_archive_type_from_url(url: str) -> ArchiveType:
 
 
 def read_raw_stream(url: str):
+    #s = RangeStream(url=url)
+    #s.add(s.total_range)
+    #return s.active_range_response.read()
     return requests.get(url, stream=True).raw.read()

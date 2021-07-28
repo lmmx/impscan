@@ -10,7 +10,11 @@ class Repository(Enum):
 
 class ReqSpec:
     def __init__(
-        self, package: str, repository: Repository, channel: list[str], constraints: list[str]
+        self,
+        package: str,
+        repository: Repository,
+        channel: list[str],
+        constraints: list[str],
     ):
         self.package = package
         self.repository = repository

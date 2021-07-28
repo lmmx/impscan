@@ -54,6 +54,9 @@ def sort_package_json_by_version(j: list[dict]) -> list[dict]:
     has_epoch = any(d for d in j if "!" in d["version"])
     return sorted(
         j,
-        key=lambda d: (version_as_tuple(d["version"], imply_epoch=has_epoch), d["build"]),
+        key=lambda d: (
+            version_as_tuple(d["version"], imply_epoch=has_epoch),
+            d["build"],
+        ),
         reverse=True,
     )

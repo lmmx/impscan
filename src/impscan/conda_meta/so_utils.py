@@ -8,9 +8,10 @@ from .zip_utils import read_zipped_zst
 
 __all__ = ["verify_exported_module_name"]
 
+
 def verify_exported_module_name(conda_archive, so_path: str) -> set[str] | None:
     with TemporaryDirectory() as tmp_dir:
-        archive = conda_archive.archive # access either .zip or .bz2 attribute
+        archive = conda_archive.archive  # access either .zip or .bz2 attribute
         so_filename = Path(so_path).name
         tmp_so = Path(tmp_dir) / so_filename
         if conda_archive.is_zstd:

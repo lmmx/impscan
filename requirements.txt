@@ -1,3 +1,7 @@
 chardet
 pyzstd
 requests
+httpx
+aiostream
+more_itertools
+tqdm
