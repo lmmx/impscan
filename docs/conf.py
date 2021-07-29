@@ -38,7 +38,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     # Too many errors: turn off type hints for now
-    #"sphinx_autodoc_typehints",
+    # "sphinx_autodoc_typehints",
     # "myst_nb",
     # "myst_parser",
 ]

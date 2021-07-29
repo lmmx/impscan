@@ -1,9 +1,9 @@
 aiostream
 chardet
-types-chardet
 httpx
 more_itertools
 pyzstd
 range-streams
 requests
 tqdm
+types-chardet

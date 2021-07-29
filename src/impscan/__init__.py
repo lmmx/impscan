@@ -31,7 +31,8 @@ Workflow
 """
 
 from . import conda_meta, db
-from .cli import *
+
+# from .cli import *
 
 __author__ = "Louis Maddox"
 __license__ = "MIT"

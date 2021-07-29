@@ -1,9 +1,8 @@
+# from types import TYPE_CHECKING
+from pathlib import Path
+
 from .requirement import EnvReqs
 from .sanitiser import is_ignored_path
-
-from types import TYPE_CHECKING
-if TYPE_CHECKING:
-    from pathlib import Path
 
 __all__ = ["scan_imports"]
 
