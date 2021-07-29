@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __all__ = ["sort_package_json_by_version"]
 
 
