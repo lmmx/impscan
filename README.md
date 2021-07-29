@@ -53,7 +53,7 @@ impscan ./my_package_dir/
 impscan ./one_module.py
 ```
 
-and add `-e foo` to exclude the name "foo" from going into any requirements lists. 
+and add `-e foo` to exclude the name "foo" from going into any requirements lists.
 
 ## Output
 
@@ -86,17 +86,3 @@ Two types of output are therefore required:
 
   - This is often misused (in my opinion) when versions are simply pinned (which is
     a somewhat arbitrary decision by the package manager, and does not comprise "reproducibility")
-
-## Workflow
-
-- Identify imports
-- Identify total dependency tree
-- Prune dependency tree
-- Identify sources (obeying source preferences if specified)
-- Save `CONDA_SETUP.md` and `requirements.txt`
-
-## Package layout
-
-- All source code is in `src/impscan/`, within which:
-  - `__main__.py⠶main()` is the target of the command-line tool, a thin interface to `cli.py`
-  - The `scanner/` subpackage handles import module name identification

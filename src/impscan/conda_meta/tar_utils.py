@@ -1,6 +1,7 @@
-from .url_utils import read_raw_stream
-import tarfile
 import io
+import tarfile
+
+from .url_utils import read_raw_stream
 
 __all__ = ["open_zipfile_from_url"]
 

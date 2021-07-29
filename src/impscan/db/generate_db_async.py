@@ -55,10 +55,6 @@ class CondaSearchJson:
 
 
 class CondaArchiveListings:
-    """
-    Synchronous listings, using `CondaStream` to efficiently look at conda archives.
-    """
-
     def __init__(self, start_from_pkg: str | None = None):
         self.search_json = CondaSearchJson(start_from_pkg=start_from_pkg)
         self.db = CondaPackageDB()  # creates a new database if not existing

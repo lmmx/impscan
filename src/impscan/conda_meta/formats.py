@@ -1,14 +1,16 @@
 from __future__ import annotations
-import zipfile
+
+import json
 import tarfile
-from .zip_utils import open_zipfile_from_url, read_zipped_zst
-from .tar_utils import open_tarfile_from_url, read_bz2_paths
-from .url_utils import detect_archive_type_from_url, detect_channel_from_url
+import zipfile
+from pathlib import Path
+from sys import stderr
+
 from .archive_types import ArchiveType
 from .so_utils import verify_exported_module_name
-import json
-from sys import stderr
-from pathlib import Path
+from .tar_utils import open_tarfile_from_url, read_bz2_paths
+from .url_utils import detect_archive_type_from_url, detect_channel_from_url
+from .zip_utils import open_zipfile_from_url, read_zipped_zst
 
 __all__ = ["CondaArchive"]
 
@@ -61,7 +63,7 @@ class CondaArchive:
                 self.meta_json, info_z, pkg_z = self.zst_meta_and_tarballs()
                 self.info_zst, self.pkg_zst = info_z, pkg_z
             except:
-                breakpoint()
+                raise NotImplementedError  # breakpoint here
         else:
             self.check_bz2_info_dir()
 
@@ -165,7 +167,7 @@ class CondaArchive:
             site_pkg_i = pth.parts.index(site_pkg_substr)
             # Take the subpath below `site-packages/`
             sp_subpath = pth.relative_to(Path(*pth.parts[: site_pkg_i + 1]))
-            #print(sp_subpath)
+            # print(sp_subpath)
             # anything directly under site-packages is in an importable namespace
             lib_name = sp_subpath.parts[0]
             if lib_name in seen:

@@ -1,6 +1,7 @@
 import sqlite3
-from ..assets import _dir_path as store_path
 from sys import stderr
+
+from ..assets import _dir_path as store_path
 
 __all__ = ["PackageDB", "CondaPackageDB"]  # TODO: "PyPIPackageDB"
 
@@ -45,7 +46,7 @@ class CondaPackageDB(PackageDB):
                 """
                 CREATE TABLE IF NOT EXISTS conda_packages
                 (packagename varchar(100), importedname varchar(100),
-                channel tinytext, depends tinytext, filename tinytext, 
+                channel tinytext, depends tinytext, filename tinytext,
                 url tinytext, version varchar(100), rootpkgs text,
                 Constraint pk_pid Primary key(channel, filename))
                 """

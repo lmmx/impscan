@@ -2,6 +2,7 @@ import httpx
 
 __all__ = ["GET"]
 
+
 def GET(url, raise_for_status=True):
     response = httpx.get(url)
     if raise_for_status:

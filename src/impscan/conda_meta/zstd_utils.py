@@ -1,8 +1,9 @@
-from pyzstd import ZstdFile
-import requests
-import zipfile
-import tarfile
 import io
+import tarfile
+import zipfile
+
+import requests
+from pyzstd import ZstdFile
 
 __all__ = ["ZstdTarFile", "extract_zst"]
 

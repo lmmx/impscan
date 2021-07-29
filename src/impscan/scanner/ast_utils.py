@@ -1,7 +1,9 @@
-from pathlib import Path
 import ast
-from .import_utils import get_imported_name_sources, get_sibling_module_names
+from pathlib import Path
+
 import chardet
+
+from .import_utils import get_imported_name_sources, get_sibling_module_names
 
 __all__ = ["retrieve_imported_modules"]
 

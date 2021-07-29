@@ -1,7 +1,8 @@
-chardet
-pyzstd
-requests
-httpx
 aiostream
+chardet
+httpx
 more_itertools
+pyzstd
+range-streams
+requests
 tqdm

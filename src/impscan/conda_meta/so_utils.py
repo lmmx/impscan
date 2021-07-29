@@ -1,9 +1,11 @@
 from __future__ import annotations
+
 import subprocess
-from zipfile import ZipFile
+from pathlib import Path
 from tarfile import TarFile
 from tempfile import TemporaryDirectory
-from pathlib import Path
+from zipfile import ZipFile
+
 from .zip_utils import read_zipped_zst
 
 __all__ = ["verify_exported_module_name"]

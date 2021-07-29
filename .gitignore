@@ -1,9 +1,16 @@
 *.swp
 *.swo
+.tox
+.coverage
+.coverage.*
+*.pyc
 build
 dist
+_build
 *.egg-info
 version.py
+.cache
+.pytest_cache/
 .eggs
 **/assets/*.json
 *.db-journal

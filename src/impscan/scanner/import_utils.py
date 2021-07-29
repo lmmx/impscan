@@ -1,6 +1,8 @@
 import ast
+from ast import Import as IType
+from ast import ImportFrom as IFType
 from pathlib import Path
-from ast import Import as IType, ImportFrom as IFType
+
 from .module_utils import stdlib_module_names
 
 __all__ = ["get_imported_name_sources", "get_sibling_module_names"]

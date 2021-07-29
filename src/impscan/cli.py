@@ -1,9 +1,10 @@
-from pathlib import Path
 import argparse
 from argparse import ArgumentParser
+from pathlib import Path
+
 from .config import EnvConfig
-from .scanner.scan import scan_imports
 from .lookup import lookup_requirements
+from .scanner.scan import scan_imports
 
 # import argcomplete
 

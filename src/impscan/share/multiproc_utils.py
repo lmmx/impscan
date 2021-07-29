@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 import multiprocessing as mp
-from multiprocessing import Process, Pool
-from more_itertools import chunked
-from tqdm import tqdm
 from functools import partial
+from multiprocessing import Pool, Process
 from typing import Callable
 
+from more_itertools import chunked
+from tqdm import tqdm
 
 __all__ = ["batch_multiprocess", "batch_multiprocess_with_return"]
 

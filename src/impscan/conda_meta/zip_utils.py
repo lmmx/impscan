@@ -1,6 +1,7 @@
-from .url_utils import read_raw_stream
-import zipfile
 import io
+import zipfile
+
+from .url_utils import read_raw_stream
 from .zstd_utils import extract_zst
 
 __all__ = ["open_zipfile_from_url", "read_zipped_zst"]
