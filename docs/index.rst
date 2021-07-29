@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 impscan:  minimal import listings and repository source identification
-=====================================================================
+======================================================================
 
 .. toctree::
     :maxdepth: 2
