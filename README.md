@@ -1,5 +1,11 @@
 # impscan
 
+[![Documentation](https://readthedocs.org/projects/impscan/badge/?version=latest)](https://impscan.readthedocs.io/en/latest/)
+[![CI Status](https://github.com/lmmx/impscan/actions/workflows/master.yml/badge.svg)](https://github.com/lmmx/impscan/actions/workflows/master.yml)
+[![Coverage](https://codecov.io/gh/lmmx/impscan/branch/master/graph/badge.svg)](https://codecov.io/github/lmmx/impscan)
+[![Checked with mypy](http://www.mypy-lang.org/static/mypy_badge.svg)](http://mypy-lang.org)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 > Command line tool to identify minimal imports list and
 > repository sources by parsing package dependency trees
 
