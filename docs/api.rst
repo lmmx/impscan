@@ -21,17 +21,17 @@ ranges.
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: impscan.conda_meta.archive_types
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 .. automodule:: impscan.conda_meta.async_utils
    :members:
    :undoc-members:
    :show-inheritance:
 
 .. automodule:: impscan.conda_meta.formats
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: impscan.conda_meta.streaming_formats
    :members:
    :undoc-members:
    :show-inheritance:

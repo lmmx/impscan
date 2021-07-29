@@ -1,13 +1,9 @@
 import httpx
 import requests
-from enum import Enum
 
-__all__ = ["ArchiveType", "detect_archive_type_from_url", "detect_channel_from_url", "read_raw_stream"]
+from .archive_types import ArchiveType
 
-
-class ArchiveType(Enum):
-    Zstd = ".conda"
-    Bz2 = ".tar.bz2"
+__all__ = ["detect_archive_type_from_url", "detect_channel_from_url", "read_raw_stream"]
 
 
 def detect_channel_from_url(url: str) -> str:

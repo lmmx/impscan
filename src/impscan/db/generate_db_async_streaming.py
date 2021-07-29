@@ -11,7 +11,7 @@ from httpx import ConnectTimeout, ProtocolError
 
 from ..assets import _dir_path as store_path
 from ..conda_meta.async_utils import fetch_archives
-from ..conda_meta.formats import CondaArchive
+from ..conda_meta.streaming_formats import CondaArchiveStream
 from ..share import batch_multiprocess_with_return
 from .db_utils import CondaPackageDB
 from .version_utils import sort_package_json_by_version
@@ -33,8 +33,8 @@ class CondaSearchJson:
             raise NotImplementedError  # TODO issue #13
         with open(self.path, "r") as f:
             self.json = json.load(f)  # less than a GB in memory
-        # self.package_list = [*self.json][:10]
-        self.package_list = [k for k in self.json if k == "tqdm"]
+        self.package_list = [*self.json]#[:100]
+        #self.package_list = [k for k in self.json if k == "tqdm"]
         if start_from_pkg:
             pkg_start_i = self.package_list.index(start_from_pkg) - 1
             self.package_list = self.package_list[pkg_start_i:]
@@ -72,13 +72,15 @@ class CondaArchiveListings:
         "Generator of URLs for async fetching"
         return self.search_json.generate_package_urls()
 
-    def make_archive(self, source_url: str, defer_pull: bool = True) -> CondaArchive:
-        "Create CondaArchive object; includes channel and format detection"
-        return CondaArchive(source_url=source_url, defer_pull=defer_pull)
+    def make_archive(
+        self, source_url: str, defer_pull: bool = True
+    ) -> CondaArchiveStream:
+        "Create CondaArchiveStream object; includes channel and format detection"
+        return CondaArchiveStream(source_url=source_url, defer_pull=defer_pull)
 
     def make_archives(self, defer_pull: bool = True):
         """
-        Make and return a list of CondaArchive objects and pull their
+        Make and return a list of CondaArchiveStream objects and pull their
         URLs collectively in an efficient async procedure (not seriallly).
         """
         return [
@@ -102,25 +104,18 @@ class CondaArchiveListings:
                 # Otherwise retry, connection was terminated due to httpx bug
             else:
                 break  # exit the for loop if it succeeds
-            # self.inflate_all_archives(verbose=verbose)
+        # self.inflate_all_archives(verbose=verbose)
 
     def inflate_all_archives(self, show_progress: bool = False):
         inflatable_list = [
-            partial(s.inflate_archive, return_archives=True) for s in self.archives
+            partial(s.inflate_archive, db=self.db) for s in self.archives
         ]
-        # Batch the soup parsing on all cores then sort to regain chronological order
-        all_inflated_archives = sorted(
-            batch_multiprocess_with_return(
-                inflatable_list,
-                show_progress=show_progress,
-                tqdm_desc="Inflating archives...",
-            ),
-            # what key ?
-            # key=lambda b: b[0].time,
+        # Batch the archive parsing to database on all cores
+        batch_multiprocess(
+            inflatable_list,
+            show_progress=show_progress,
+            tqdm_desc="Inflating archives...",
         )
-        for s, b in zip(self.archives, all_scheduled_broadcasts):
-            s.broadcasts = b
-
 
 def check_listings_suffix(lst: list[dict], suffix: str) -> Generator[dict, None, None]:
     return (d for d in lst if d["fn"].endswith(suffix))

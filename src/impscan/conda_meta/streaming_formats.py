@@ -5,16 +5,19 @@ import tarfile
 import zipfile
 from pathlib import Path
 from sys import stderr
+from range_streams.codecs.conda import CondaStream
+from range_streams.codecs.zstd.tar import extract_zst
 
+from ..db.db_utils import CondaPackageDB
 from .so_utils import verify_exported_module_name
 from .tar_utils import open_tarfile_from_url, read_bz2_paths
 from .url_utils import detect_archive_type_from_url, detect_channel_from_url, ArchiveType
 from .zip_utils import open_zipfile_from_url, read_zipped_zst
 
-__all__ = ["CondaArchive"]
+__all__ = ["CondaArchiveStream"]
 
 
-class CondaArchive:
+class CondaArchiveStream:
     info_is_read = False
     path_info = "info/paths.json"
     about_info = "info/about.json"
@@ -23,26 +26,18 @@ class CondaArchive:
     about_json = None
     index_json = None
 
-    def __init__(self, source_url: str, defer_pull: bool = False):
+    def __init__(self, source_url: str, defer_pull: bool = True):
         self.url = source_url
         print(source_url)
         self.channel = detect_channel_from_url(self.url)
         self.archive_type = detect_archive_type_from_url(self.url)
-        if not defer_pull:  # deferred for async procedure
+        if not defer_pull:
             self.pull()
 
     def pull(self) -> None:
-        if self.is_zstd:
-            try:
-                archive = open_zipfile_from_url(self.url)
-            except zipfile.BadZipFile:
-                print(f"Bad zip file: {url=}", file=stderr)
-                raise
-            else:
-                assert isinstance(
-                    archive, zipfile.ZipFile
-                ), f"Unexpected {type(archive)=}"
-                self.zip = archive
+        if self.url.endswith(".conda"):
+            archive = CondaStream(url=self.url)
+            self.zip = archive
         elif self.is_bz2:
             try:
                 archive = open_tarfile_from_url(self.url)
@@ -80,7 +75,7 @@ class CondaArchive:
 
     @property
     def members(self):
-        return self.archive.namelist() if self.is_zstd else self.archive.getnames()
+        return self.archive.filename_list if self.is_zstd else self.archive.getnames()
 
     def check_bz2_info_dir(self) -> None:
         """
@@ -132,7 +127,13 @@ class CondaArchive:
         """
         if not self.info_is_read:
             if self.is_zstd:
-                info_b = read_zipped_zst(self.archive, self.info_zst, self.info_fields)
+                info_zf = next(
+                    f for f in self.archive.zipped_files if f.filename == self.info_zst
+                )
+                info_zf_rng_start = info_zf.file_range.start
+                info_zf_response = self.archive.ranges[info_zf_rng_start]
+                info_zst_b = info_zf_response.read()
+                info_b = extract_zst(zst=info_zst_b, file_paths=self.info_fields)
             else:
                 info_b = read_bz2_paths(self.archive, self.info_fields)
             self.path_json, self.about_json, self.index_json = map(json.load, info_b)
@@ -246,3 +247,18 @@ class CondaArchive:
             "rootpkgs": root_pkgs,
         }
         return db_entry
+
+    def inflate_archive(self, db: CondaPackageDB):
+        """
+        Pull and parse the archive to a database entry, and insert it.
+
+        Args:
+          db : The database to insert the entry into.
+        """
+        try:
+            self.pull()
+            e = self.parse_to_db_entry()
+            db.insert_entry(**e)
+        except FileNotFoundError as err:
+            # Safeguard archive parsing errors, let DB errors raise
+            print(err, file=stderr)

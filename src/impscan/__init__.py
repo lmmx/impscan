@@ -42,3 +42,7 @@ and repository sources by parsing package dependency trees"""
 __url__ = "https://github.com/lmmx/impscan"
 __uri__ = __url__
 __email__ = "louismmx@gmail.com"
+
+_EXAMPLE_CONDA_URL = (
+    "https://repo.anaconda.com/pkgs/main/linux-64/tqdm-4.19.5-py27_0.conda"
+)
