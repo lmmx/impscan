@@ -59,7 +59,8 @@ jobs:
         if: "contains(env.USING_COVERAGE, matrix.python-version)"
         uses: "codecov/codecov-action@v1"
         with:
-          fail_ci_if_error: true
+          fail_ci_if_error: false # true
+          # Ongoing issue: https://github.com/codecov/codecov-action/issues/330
 
   package:
     name: "Build & verify package"
