@@ -1,3 +1,4 @@
+# type: ignore
 import ast
 from ast import Import as IType
 from ast import ImportFrom as IFType

@@ -1,5 +1,6 @@
 aiostream
 chardet
+types-chardet
 httpx
 more_itertools
 pyzstd

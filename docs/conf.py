@@ -37,7 +37,8 @@ extensions = [
     # "sphinx.ext.mathjax",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
-    "sphinx_autodoc_typehints",
+    # Too many errors: turn off type hints for now
+    #"sphinx_autodoc_typehints",
     # "myst_nb",
     # "myst_parser",
 ]

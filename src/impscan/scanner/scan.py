@@ -1,10 +1,14 @@
 from .requirement import EnvReqs
 from .sanitiser import is_ignored_path
 
+from types import TYPE_CHECKING
+if TYPE_CHECKING:
+    from pathlib import Path
+
 __all__ = ["scan_imports"]
 
 
-def scan_imports(source_path, env_config):
+def scan_imports(source_path: Path, env_config) -> EnvReqs:
     """
     Execute the scan of import statements below `source_path`
     (either a Python file or a directory to be walked recursively to find

@@ -1,3 +1,4 @@
+# type: ignore
 def get_info_stream(stream_url: str) -> dict:
     """
     Given the URL of a conda packaged binary (either `.tar.bz2` or `.conda`)

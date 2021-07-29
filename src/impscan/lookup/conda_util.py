@@ -1,3 +1,4 @@
+# type: ignore
 __all__ = ["conda_search_reqs"]
 
 

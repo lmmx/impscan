@@ -1,3 +1,4 @@
+# type: ignore
 __all__ = ["pypi_search_reqs"]
 
 
