@@ -21,6 +21,46 @@ ranges.
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: impscan.conda_meta.archive_types
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: impscan.conda_meta.async_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: impscan.conda_meta.formats
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: impscan.conda_meta.so_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: impscan.conda_meta.tar_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: impscan.conda_meta.url_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: impscan.conda_meta.zip_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: impscan.conda_meta.zstd_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Database handling
 =================
@@ -31,6 +71,24 @@ Set up a database to store the package archive listings in.
 
 
 .. automodule:: impscan.db
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.db.db_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.db.generate_db
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.db.version_utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -50,6 +108,30 @@ Lookup
    :show-inheritance:
 
 
+.. automodule:: impscan.lookup.conda_util
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.lookup.listings_xref
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.lookup.pypi_util
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.lookup.req_spec
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
 Scanning
 ========
 
@@ -64,6 +146,53 @@ The :mod:`~impscan.scanner` subpackage handles import module name identification
    :show-inheritance:
 
 
+.. automodule:: impscan.scanner.ast_parsing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.scanner.ast_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.scanner.build_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.scanner.import_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.scanner.module_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.scanner.requirement
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.scanner.sanitiser
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+
+.. automodule:: impscan.scanner.scan
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Miscellaneous shared utils
 ==========================
 
@@ -77,6 +206,16 @@ These are the commonly used parts of the library.
    :undoc-members:
    :show-inheritance:
 
+.. automodule:: impscan.share.http_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. automodule:: impscan.share.multiproc_utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Streaming
 =========
 
@@ -85,7 +224,7 @@ Stream handling.
 ----
 
 
-.. automodule:: impscan.streams
+.. automodule:: impscan.streams.conda_unbox
    :members:
    :undoc-members:
    :special-members:
