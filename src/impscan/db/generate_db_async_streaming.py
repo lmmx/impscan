@@ -10,7 +10,7 @@ from zipfile import BadZipFile
 from httpx import ConnectTimeout, ProtocolError
 
 from ..assets import _dir_path as store_path
-from ..conda_meta.async_utils import fetch_archives
+from ..conda_meta.async_utils_streaming import fetch_archives
 from ..conda_meta.streaming_formats import CondaArchiveStream
 from ..share import batch_multiprocess_with_return
 from .db_utils import CondaPackageDB
@@ -93,17 +93,7 @@ class CondaArchiveListings:
 
     def fetch_archives(self, verbose: bool = False, n_retries: int = 3):
         # (Retries due to httpx client bug documented in issue 6 of beeb issue tracker)
-        # REVIEW: Does this retry all or just one? Resolves the timeout bug # regardless
-        for i in range(n_retries):
-            try:
-                fetch_archives(self.archives)
-            except (ConnectTimeout, ProtocolError) as e:  # ProtocolError as e:
-                print(f"Error occurred {e}, retrying", file=stderr)
-                if i == n_retries - 1:
-                    raise  # Persisted after all retries, so throw it, don't proceed
-                # Otherwise retry, connection was terminated due to httpx bug
-            else:
-                break  # exit the for loop if it succeeds
+        fetch_archives(archives=self.archives, db=self.db)
         # self.inflate_all_archives(verbose=verbose)
 
     def inflate_all_archives(self, show_progress: bool = False):

@@ -5,6 +5,8 @@ import json
 import zipfile
 from sys import stderr
 
+from httpx import ConnectTimeout, ProtocolError
+
 from ..assets import _dir_path as store_path
 from ..conda_meta.streaming_formats import CondaArchiveStream
 from .db_utils import CondaPackageDB
@@ -13,7 +15,7 @@ from .version_utils import sort_package_json_by_version
 __all__ = ["populate_conda_package_db"]
 
 
-def populate_conda_package_db(start_from_pkg: str | None = None):
+def populate_conda_package_db(start_from_pkg: str | None = None, n_retries: int = 3):
     conda_search_json = store_path / "conda_listings.json"
     if not conda_search_json.exists():
         raise NotImplementedError
@@ -38,5 +40,15 @@ def populate_conda_package_db(start_from_pkg: str | None = None):
                 a for a in archive_listings if a["fn"].endswith(ext)
             )
             c = CondaArchiveStream(most_recent_archive["url"])
-            c.inflate_archive(db=db)
+            print(f"Inflating...")
+            for i in range(n_retries):
+                try:
+                    c.inflate_archive(db=db)
+                except (ConnectTimeout, ProtocolError) as e:  # ProtocolError as e:
+                    print(f"- - - Error occurred {e}, retrying", file=stderr)
+                    if i == n_retries - 1:
+                        raise  # Persisted after all retries, so throw it, don't proceed
+                    # Otherwise retry, connection was terminated due to httpx bug
+                else:
+                    break  # exit the for loop if it succeeds
             del c
