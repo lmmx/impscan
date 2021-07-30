@@ -5,13 +5,18 @@ import tarfile
 import zipfile
 from pathlib import Path
 from sys import stderr
+
 from range_streams.codecs.conda import CondaStream
 from range_streams.codecs.zstd.tar import extract_zst
 
 from ..db.db_utils import CondaPackageDB
 from .so_utils import verify_exported_module_name
 from .tar_utils import open_tarfile_from_url, read_bz2_paths
-from .url_utils import detect_archive_type_from_url, detect_channel_from_url, ArchiveType
+from .url_utils import (
+    ArchiveType,
+    detect_archive_type_from_url,
+    detect_channel_from_url,
+)
 from .zip_utils import open_zipfile_from_url, read_zipped_zst
 
 __all__ = ["CondaArchiveStream"]
@@ -119,6 +124,25 @@ class CondaArchiveStream:
     def info_fields(self) -> list[str]:
         return [self.path_info, self.about_info, self.index_info]
 
+    def read_zst(self, filename: str, paths: list[str]) -> list[bytes]:
+        """
+        Extract the bytes from a CondaStream's internal tar.zst archive.
+        Requires downloading the entire tarball range (but not the entire
+        CondaStream).
+
+        Args:
+          filename : Name of the tar.zst file within the CondaStream
+          paths    : Paths within the tar.zst archive to return bytes from
+        """
+        zf = next(f for f in self.archive.zipped_files if f.filename == filename)
+        zf_rng_start = zf.file_range.start
+        if zf.file_range not in self.archive.ranges:
+            self.archive.add(zf.file_range)
+        zf_response = self.archive.ranges[zf_rng_start]
+        zst_b = zf_response.read()
+        b = extract_zst(zst=zst_b, file_paths=paths)
+        return b
+
     def read_info(self):
         """
         Load the JSON files from the info archive (otherwise all attempts to
@@ -127,13 +151,7 @@ class CondaArchiveStream:
         """
         if not self.info_is_read:
             if self.is_zstd:
-                info_zf = next(
-                    f for f in self.archive.zipped_files if f.filename == self.info_zst
-                )
-                info_zf_rng_start = info_zf.file_range.start
-                info_zf_response = self.archive.ranges[info_zf_rng_start]
-                info_zst_b = info_zf_response.read()
-                info_b = extract_zst(zst=info_zst_b, file_paths=self.info_fields)
+                info_b = self.read_zst(filename=self.info_zst, paths=self.info_fields)
             else:
                 info_b = read_bz2_paths(self.archive, self.info_fields)
             self.path_json, self.about_json, self.index_json = map(json.load, info_b)

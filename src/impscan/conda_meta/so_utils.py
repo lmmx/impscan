@@ -6,7 +6,7 @@ from tarfile import TarFile
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 
-from .zip_utils import read_zipped_zst
+# from .zip_utils import read_zipped_zst
 
 __all__ = ["verify_exported_module_name"]
 
@@ -19,7 +19,7 @@ def verify_exported_module_name(conda_archive, so_path: str) -> set[str] | None:
         if conda_archive.is_zstd:
             # the paths JSON is in the info zst, but the library is within the pkg zst
             # `archive` is the outer zip: extract so_path from the pkg zst inside it
-            [so_bytes] = read_zipped_zst(archive, conda_archive.pkg_zst, [so_path])
+            [so_bytes] = conda_archive.read_zst(conda_archive.pkg_zst, [so_path])
             with open(tmp_so, "wb") as tf:
                 tf.write(so_bytes.read())
         else:

@@ -21,7 +21,7 @@ async def fetch(session: AsyncClient, url: str, can_raise: bool = False) -> Resp
 async def process_archive(resp: Response, lst: list[CondaArchive], pbar=None):
     # Map the response back to the CondaArchive it came from in the package listings
     archive = next(a for a in lst if a.url == resp.url)
-    #raise NotImplementedError  # breakpoint here
+    # raise NotImplementedError  # breakpoint here
     # Save the archive for inflating later (using multiprocessing on entire listing)
     archive.frozen_archive = await resp.aread()
     print({resp.url: resp})

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
+import gc
 import json
 import zipfile
 from sys import stderr
-import gc
 
 from ..assets import _dir_path as store_path
 from ..conda_meta.streaming_formats import CondaArchiveStream

@@ -1,8 +1,14 @@
-import httpx
-import requests
 from enum import Enum
 
-__all__ = ["ArchiveType", "detect_archive_type_from_url", "detect_channel_from_url", "read_raw_stream"]
+import httpx
+import requests
+
+__all__ = [
+    "ArchiveType",
+    "detect_archive_type_from_url",
+    "detect_channel_from_url",
+    "read_raw_stream",
+]
 
 
 class ArchiveType(Enum):

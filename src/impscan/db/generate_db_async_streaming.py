@@ -33,8 +33,8 @@ class CondaSearchJson:
             raise NotImplementedError  # TODO issue #13
         with open(self.path, "r") as f:
             self.json = json.load(f)  # less than a GB in memory
-        self.package_list = [*self.json]#[:100]
-        #self.package_list = [k for k in self.json if k == "tqdm"]
+        self.package_list = [*self.json]  # [:100]
+        # self.package_list = [k for k in self.json if k == "tqdm"]
         if start_from_pkg:
             pkg_start_i = self.package_list.index(start_from_pkg) - 1
             self.package_list = self.package_list[pkg_start_i:]
@@ -116,6 +116,7 @@ class CondaArchiveListings:
             show_progress=show_progress,
             tqdm_desc="Inflating archives...",
         )
+
 
 def check_listings_suffix(lst: list[dict], suffix: str) -> Generator[dict, None, None]:
     return (d for d in lst if d["fn"].endswith(suffix))

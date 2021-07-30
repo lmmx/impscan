@@ -8,7 +8,11 @@ from sys import stderr
 
 from .so_utils import verify_exported_module_name
 from .tar_utils import open_tarfile_from_url, read_bz2_paths
-from .url_utils import detect_archive_type_from_url, detect_channel_from_url, ArchiveType
+from .url_utils import (
+    ArchiveType,
+    detect_archive_type_from_url,
+    detect_channel_from_url,
+)
 from .zip_utils import open_zipfile_from_url, read_zipped_zst
 
 __all__ = ["CondaArchive"]
