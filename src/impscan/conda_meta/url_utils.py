@@ -1,6 +1,5 @@
 from enum import Enum
 
-import httpx
 import requests
 
 __all__ = [

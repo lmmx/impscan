@@ -34,7 +34,10 @@ async def async_fetch_urlset(urls, archives: list[CondaArchive], pbar=None):
         ws = stream.repeat(session)
         xs = stream.zip(ws, stream.iterate(urls))
         ys = stream.starmap(
-            xs, fetch, ordered=False, task_limit=20
+            xs,
+            fetch,
+            ordered=False,
+            task_limit=20,
         )  # 30 is similar IDK
         process = partial(process_archive, lst=archives, pbar=pbar)
         zs = stream.map(ys, process)

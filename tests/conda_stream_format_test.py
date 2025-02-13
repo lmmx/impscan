@@ -1,4 +1,4 @@
-from pytest import fixture, mark, raises
+from pytest import fixture
 
 from impscan.conda_meta.streaming_formats import CondaArchiveStream
 

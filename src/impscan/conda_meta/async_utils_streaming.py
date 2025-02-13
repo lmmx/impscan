@@ -41,7 +41,10 @@ async def fetch(
 
 
 async def process_archive(
-    resp: Response | None, lst: list[CondaArchiveStream], db=CondaPackageDB, pbar=None
+    resp: Response | None,
+    lst: list[CondaArchiveStream],
+    db=CondaPackageDB,
+    pbar=None,
 ):
     if resp is None:
         # Already processed synchronously
@@ -59,14 +62,19 @@ async def process_archive(
 
 
 async def async_fetch_urlset(
-    archives: list[CondaArchiveStream], db: CondaPackageDB, pbar=None
+    archives: list[CondaArchiveStream],
+    db: CondaPackageDB,
+    pbar=None,
 ):
     async with AsyncClient() as session:
         session.db = db  # For now, do zst streams synchronously, entering to DB
         ws = stream.repeat(session)
         xs = stream.zip(ws, stream.iterate(archives))
         ys = stream.starmap(
-            xs, fetch, ordered=False, task_limit=20
+            xs,
+            fetch,
+            ordered=False,
+            task_limit=20,
         )  # 30 is similar IDK
         process = partial(process_archive, lst=archives, db=db, pbar=pbar)
         zs = stream.map(ys, process)

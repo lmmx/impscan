@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import multiprocessing as mp
-from functools import partial
 from multiprocessing import Pool, Process
-from typing import Callable
+from collections.abc import Callable
 
 from more_itertools import chunked
 from tqdm import tqdm

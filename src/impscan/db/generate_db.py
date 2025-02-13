@@ -3,9 +3,7 @@ from __future__ import annotations
 import json
 from functools import partial
 from sys import stderr
-from tarfile import TarError
-from typing import Generator
-from zipfile import BadZipFile
+from collections.abc import Generator
 
 from httpx import ConnectTimeout, ProtocolError
 
@@ -31,7 +29,7 @@ class CondaSearchJson:
         self.start_from_pkg = start_from_pkg
         if not self.path.exists():
             raise NotImplementedError  # TODO issue #13
-        with open(self.path, "r") as f:
+        with open(self.path) as f:
             self.json = json.load(f)  # less than a GB in memory
         # self.package_list = [*self.json][:10]
         self.package_list = [k for k in self.json if k == "tqdm"]

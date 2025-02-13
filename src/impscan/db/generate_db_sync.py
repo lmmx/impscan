@@ -17,7 +17,7 @@ def populate_conda_package_db(start_from_pkg: str | None = None):
     if not conda_search_json.exists():
         raise NotImplementedError
     db = CondaPackageDB()  # creates a new database if not existing
-    with open(conda_search_json, "r") as f:
+    with open(conda_search_json) as f:
         j = json.load(f)  # less than a GB in memory
         for package in j:
             if start_from_pkg is not None and package != start_from_pkg:
