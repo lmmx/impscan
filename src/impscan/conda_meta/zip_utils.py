@@ -16,7 +16,9 @@ def open_zipfile_from_url(url: str) -> zipfile.ZipFile:
 
 
 def read_zipped_zst(
-    zf: zipfile.ZipFile, zst_tar_fn: str, zst_paths: list[str]
+    zf: zipfile.ZipFile,
+    zst_tar_fn: str,
+    zst_paths: list[str],
 ) -> list[bytes]:
     """
     Given the ZipFile `zf`, tarball filename `zst_tar_fn`, and path(s) within the

@@ -1,4 +1,3 @@
-import httpx
 import requests
 
 from .archive_types import ArchiveType

@@ -2,9 +2,7 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-from tarfile import TarFile
 from tempfile import TemporaryDirectory
-from zipfile import ZipFile
 
 # from .zip_utils import read_zipped_zst
 
@@ -29,7 +27,7 @@ def verify_exported_module_name(conda_archive, so_path: str) -> set[str] | None:
         # NB: Python 2 used `init_` to prefix its exported func for module import name
         py_funcs = [f for f in exported if "PyInit_" in f]
         if py_funcs:
-            exported_module = set([f.split("PyInit_")[1] for f in py_funcs])
+            exported_module = {f.split("PyInit_")[1] for f in py_funcs}
             if len(exported_module) > 1:
                 msg = f"{so_path=} exported multiple module names {exported_module=}"
                 raise ValueError(msg)

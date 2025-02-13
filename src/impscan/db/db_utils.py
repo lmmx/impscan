@@ -49,7 +49,7 @@ class CondaPackageDB(PackageDB):
                 channel tinytext, depends tinytext, filename tinytext,
                 url tinytext, version varchar(100), rootpkgs text,
                 Constraint pk_pid Primary key(channel, filename))
-                """
+                """,
             )
 
     def insert_entry(

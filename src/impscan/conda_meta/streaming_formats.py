@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import tarfile
-import zipfile
 from pathlib import Path
 from sys import stderr
 
@@ -17,7 +16,6 @@ from .url_utils import (
     detect_archive_type_from_url,
     detect_channel_from_url,
 )
-from .zip_utils import open_zipfile_from_url, read_zipped_zst
 
 __all__ = ["CondaArchiveStream"]
 
@@ -51,7 +49,8 @@ class CondaArchiveStream:
                 raise
             else:
                 assert isinstance(
-                    archive, tarfile.TarFile
+                    archive,
+                    tarfile.TarFile,
                 ), f"Unexpected {type(archive)=}"
                 self.bz2 = archive
         else:
@@ -178,7 +177,7 @@ class CondaArchiveStream:
         for p in pgen:
             pth = Path(p)
             site_pkg_substr = "site-packages"
-            if not site_pkg_substr in pth.parts:
+            if site_pkg_substr not in pth.parts:
                 continue
             elif p == site_pkg_substr:
                 continue  # pypy ships a `site-packages` symlink in top level dir
@@ -212,7 +211,7 @@ class CondaArchiveStream:
             # Alphabetise the imported module names, underscore-prefixed later
             comma_sep_pkgs = ",".join(
                 # `p.index(p.lstrip("_"))` counts the leading underscores in p
-                sorted(libs, key=lambda p: (p.index(p.lstrip("_")), p))
+                sorted(libs, key=lambda p: (p.index(p.lstrip("_")), p)),
             )
         else:
             if lib_name is not None:
@@ -222,7 +221,7 @@ class CondaArchiveStream:
             print(
                 ValueError(
                     f"Couldn't determine a site-packages name{extra_info}"
-                    f" --> via {self.url=}"
+                    f" --> via {self.url=}",
                 ),
                 file=stderr,
             )

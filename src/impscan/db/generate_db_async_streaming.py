@@ -3,16 +3,12 @@ from __future__ import annotations
 import json
 from functools import partial
 from sys import stderr
-from tarfile import TarError
-from typing import Generator
-from zipfile import BadZipFile
+from collections.abc import Generator
 
-from httpx import ConnectTimeout, ProtocolError
 
 from ..assets import _dir_path as store_path
 from ..conda_meta.async_utils_streaming import fetch_archives
 from ..conda_meta.streaming_formats import CondaArchiveStream
-from ..share import batch_multiprocess_with_return
 from .db_utils import CondaPackageDB
 from .version_utils import sort_package_json_by_version
 
@@ -31,7 +27,7 @@ class CondaSearchJson:
         self.start_from_pkg = start_from_pkg
         if not self.path.exists():
             raise NotImplementedError  # TODO issue #13
-        with open(self.path, "r") as f:
+        with open(self.path) as f:
             self.json = json.load(f)  # less than a GB in memory
         self.package_list = [*self.json]  # [:100]
         # self.package_list = [k for k in self.json if k == "tqdm"]
@@ -73,7 +69,9 @@ class CondaArchiveListings:
         return self.search_json.generate_package_urls()
 
     def make_archive(
-        self, source_url: str, defer_pull: bool = True
+        self,
+        source_url: str,
+        defer_pull: bool = True,
     ) -> CondaArchiveStream:
         "Create CondaArchiveStream object; includes channel and format detection"
         return CondaArchiveStream(source_url=source_url, defer_pull=defer_pull)

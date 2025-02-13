@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import gc
 import json
-import zipfile
 from sys import stderr
 
 from httpx import ConnectTimeout, ProtocolError
@@ -20,7 +18,7 @@ def populate_conda_package_db(start_from_pkg: str | None = None, n_retries: int 
     if not conda_search_json.exists():
         raise NotImplementedError
     db = CondaPackageDB()  # creates a new database if not existing
-    with open(conda_search_json, "r") as f:
+    with open(conda_search_json) as f:
         j = json.load(f)  # less than a GB in memory
         for package in j:
             if start_from_pkg is not None and package != start_from_pkg:
@@ -40,7 +38,7 @@ def populate_conda_package_db(start_from_pkg: str | None = None, n_retries: int 
                 a for a in archive_listings if a["fn"].endswith(ext)
             )
             c = CondaArchiveStream(most_recent_archive["url"])
-            print(f"Inflating...")
+            print("Inflating...")
             for i in range(n_retries):
                 try:
                     c.inflate_archive(db=db)
