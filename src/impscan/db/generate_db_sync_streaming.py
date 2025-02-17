@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from sys import stderr
 
-from httpx import ConnectTimeout, ProtocolError
+from httpx import ConnectTimeout, ProtocolError, ReadTimeout
 
 from ..assets import _dir_path as store_path
 from ..conda_meta.streaming_formats import CondaArchiveStream
@@ -38,11 +38,15 @@ def populate_conda_package_db(start_from_pkg: str | None = None, n_retries: int 
                 a for a in archive_listings if a["fn"].endswith(ext)
             )
             c = CondaArchiveStream(most_recent_archive["url"])
-            print("Inflating...")
+            # print(f"Inflating...")
             for i in range(n_retries):
                 try:
                     c.inflate_archive(db=db)
-                except (ConnectTimeout, ProtocolError) as e:  # ProtocolError as e:
+                except (
+                    ConnectTimeout,
+                    ProtocolError,
+                    ReadTimeout,
+                ) as e:  # ProtocolError as e:
                     print(f"- - - Error occurred {e}, retrying", file=stderr)
                     if i == n_retries - 1:
                         raise  # Persisted after all retries, so throw it, don't proceed

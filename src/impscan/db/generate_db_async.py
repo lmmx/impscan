@@ -89,18 +89,7 @@ class CondaArchiveListings:
 
     def fetch_archives(self, verbose: bool = False, n_retries: int = 3):
         # (Retries due to httpx client bug documented in issue 6 of beeb issue tracker)
-        # REVIEW: Does this retry all or just one? Resolves the timeout bug # regardless
-        for i in range(n_retries):
-            try:
-                fetch_archives(self.archives)
-            except (ConnectTimeout, ProtocolError) as e:  # ProtocolError as e:
-                print(f"Error occurred {e}, retrying", file=stderr)
-                if i == n_retries - 1:
-                    raise  # Persisted after all retries, so throw it, don't proceed
-                # Otherwise retry, connection was terminated due to httpx bug
-            else:
-                break  # exit the for loop if it succeeds
-            # self.inflate_all_archives(verbose=verbose)
+        fetch_archives(self.archives)
 
     def inflate_all_archives(self, show_progress: bool = False):
         inflatable_list = [

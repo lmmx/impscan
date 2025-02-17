@@ -12,10 +12,19 @@ __all__ = ["fetch", "process_archive", "async_fetch_urlset", "fetch_urls"]
 
 
 async def fetch(session: AsyncClient, url: str, can_raise: bool = False) -> Response:
-    response = await session.get(url)
-    if can_raise:
-        response.raise_for_status()
-    return response
+    for i in range(n_retries):
+        try:
+            response = await session.get(url)
+            if can_raise:
+                response.raise_for_status()
+        except (ConnectTimeout, ProtocolError) as e:  # ProtocolError as e:
+            print(f"Error occurred {e}, retrying", file=stderr)
+            if i == n_retries - 1:
+                raise  # Persisted after all retries, so throw it, don't proceed
+            # Otherwise retry, connection was terminated due to httpx bug
+        else:
+            break  # exit the for loop if it succeeds
+        return response
 
 
 async def process_archive(resp: Response, lst: list[CondaArchive], pbar=None):
