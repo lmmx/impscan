@@ -35,7 +35,7 @@ class CondaSearchJson:
             pkg_start_i = self.package_list.index(start_from_pkg) - 1
             self.package_list = self.package_list[pkg_start_i:]
 
-    def generate_package_urls(self) -> Generator[str, None, None]:
+    def generate_package_urls(self) -> Generator[str]:
         for package in self.package_list:
             # print(f"{package=}")
             archive_listings = sort_package_json_by_version(self.json[package])
@@ -64,7 +64,7 @@ class CondaArchiveListings:
         #        print(err, file=stderr)
 
     @property
-    def urlset(self) -> Generator[str, None, None]:
+    def urlset(self) -> Generator[str]:
         "Generator of URLs for async fetching"
         return self.search_json.generate_package_urls()
 
@@ -106,5 +106,5 @@ class CondaArchiveListings:
         )
 
 
-def check_listings_suffix(lst: list[dict], suffix: str) -> Generator[dict, None, None]:
+def check_listings_suffix(lst: list[dict], suffix: str) -> Generator[dict]:
     return (d for d in lst if d["fn"].endswith(suffix))
