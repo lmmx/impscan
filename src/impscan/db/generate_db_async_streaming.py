@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Generator
 from functools import partial
 from sys import stderr
-from collections.abc import Generator
-
 
 from ..assets import _dir_path as store_path
 from ..conda_meta.async_utils_streaming import fetch_archives
@@ -12,7 +11,7 @@ from ..conda_meta.streaming_formats import CondaArchiveStream
 from .db_utils import CondaPackageDB
 from .version_utils import sort_package_json_by_version
 
-__all__ = ["CondaSearchJson", "CondaArchiveListings"]
+__all__ = ["CondaArchiveListings", "CondaSearchJson"]
 
 
 class CondaSearchJson:

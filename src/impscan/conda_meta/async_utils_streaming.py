@@ -9,7 +9,7 @@ from httpx import AsyncClient, Response
 from ..db.db_utils import CondaPackageDB
 from .streaming_formats import CondaArchiveStream
 
-__all__ = ["fetch", "process_archive", "async_fetch_urlset", "fetch_urls"]
+__all__ = ["async_fetch_urlset", "fetch", "fetch_urls", "process_archive"]
 
 
 async def fetch(

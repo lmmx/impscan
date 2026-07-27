@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-__all__ = ["ReqSpec", "CondaReqSpec", "PyPIReqSpec"]
+__all__ = ["CondaReqSpec", "PyPIReqSpec", "ReqSpec"]
 
 
 class Repository(Enum):

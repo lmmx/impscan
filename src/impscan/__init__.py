@@ -33,7 +33,7 @@ Workflow
 from . import conda_meta, db, lookup, scanner, share, streams
 
 # from .cli import *
-__all__ = ["conda_meta", "db", "scanner", "share", "streams", "lookup"]
+__all__ = ["conda_meta", "db", "lookup", "scanner", "share", "streams"]
 
 __author__ = "Louis Maddox"
 __license__ = "MIT"

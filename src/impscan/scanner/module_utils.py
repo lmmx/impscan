@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-__all__ = ["stdlib_module_names", "stdlib_dynload_module_names"]
+__all__ = ["stdlib_dynload_module_names", "stdlib_module_names"]
 
 
 def stdlib_module_names() -> set:
