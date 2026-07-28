@@ -89,7 +89,6 @@ class CondaArchiveStream:
         bz2_info_dirname = "info/"
         if not any(f for f in self.members if f.startswith(bz2_info_dirname)):
             raise ValueError(f"No info directory in {self.members=}")
-        return
 
     def zst_meta_and_tarballs(self) -> tuple[str]:
         """

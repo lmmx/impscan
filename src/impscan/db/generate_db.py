@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Generator
 from functools import partial
 from sys import stderr
-from collections.abc import Generator
 
 from httpx import ConnectTimeout, ProtocolError
 

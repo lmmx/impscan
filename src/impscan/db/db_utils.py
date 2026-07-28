@@ -3,7 +3,7 @@ from sys import stderr
 
 from ..assets import _dir_path as store_path
 
-__all__ = ["PackageDB", "CondaPackageDB"]  # TODO: "PyPIPackageDB"
+__all__ = ["CondaPackageDB", "PackageDB"]  # TODO: "PyPIPackageDB"
 
 
 class PackageDB:
