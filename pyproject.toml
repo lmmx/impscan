@@ -10,7 +10,7 @@ version = "0.0.1"
 description = "Command line tool to identify minimal imports list and repository sources by parsing package dependency trees"
 readme = "README.md"
 authors = [
-  {name = "Louis Maddox", email = "louismmx@gmail.com"}
+  { name = "Louis Maddox", email = "louismmx@gmail.com" }
 ]
 requires-python = ">=3.9"
 dependencies = []
